@@ -94,10 +94,36 @@ namespace КурсоваяAPI.Controllers
                 return NotFound();
             }
 
-            _context.Counterparties.Remove(counterparty);
-            await _context.SaveChangesAsync();
+            var customers = _context.Customers.Where(p => p.Idpartner == id);
+            var sellers = _context.Sellers.Where(p => p.Idpartner == id);
+            //var attachedEntry = _context.Entry(product);
+            //product = attachedEntry.Entity;
+            //object currentName2 = context.Entry(blog).Property("Name").CurrentValue;
+            /*_context.Products.Remove(product);
+            attachedEntry.State = EntityState.Deleted;*/
 
-            return NoContent();
+            //var product1 = new Product { Id = 1 };
+            _context.Counterparties.Attach(counterparty);
+            if (customers.Count() == 0 && sellers.Count() == 0)
+            {
+                _context.Remove(counterparty);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+
+            //_context.SaveChanges();
+
+
+
+
+            /*product = await _context.Products.FindAsync(id);
+            if (product != null)
+            {
+                return Conflict();
+            }*/
+
+
+            return Conflict();
         }
 
         private bool CounterpartyExists(int id)

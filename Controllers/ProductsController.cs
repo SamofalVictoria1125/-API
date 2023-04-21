@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Models;
+using System.Reflection.Metadata;
+using Microsoft.Extensions.Primitives;
+using System.Text;
 
 namespace API.Controllers
 {
@@ -18,14 +21,21 @@ namespace API.Controllers
         public ProductsController(OvoshebazaContext context)
         {
             _context = context;
+            
         }
 
         // GET: api/Products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            return await _context.Products.ToListAsync();
+            if (CheckAuth())
+            {
+                return await _context.Products.ToListAsync();
+            }
+            return NoContent();
+
         }
+        
 
         // GET: api/Products/5
         [HttpGet("{id}")]
@@ -100,17 +110,23 @@ namespace API.Controllers
                 return NotFound();
             }
 
-            
-            /*var attachedEntry = _context.Entry(product);
-            _context.Products.Remove(product);
+
+            var purchaseCompositions = _context.PurchaseCompositions.Where(p => p.Idproduct == id);
+            var deliveryCompositions = _context.DeliveryCompositions.Where(p => p.Idproduct == id);
+            var shipmentCompositions = _context.ShipmentCompositions.Where(p => p.Idproduct == id);
+            //var attachedEntry = _context.Entry(product);
+            //product = attachedEntry.Entity;
+            //object currentName2 = context.Entry(blog).Property("Name").CurrentValue;
+            /*_context.Products.Remove(product);
             attachedEntry.State = EntityState.Deleted;*/
 
             //var product1 = new Product { Id = 1 };
             _context.Products.Attach(product);
-            if (product.DeliveryCompositions.Count == 0 && product.PurchaseCompositions.Count == 0 && product.ShipmentCompositions.Count == 0)
+            if (deliveryCompositions.Count() == 0 && purchaseCompositions.Count() == 0 && shipmentCompositions.Count() == 0)
             {
                 _context.Remove(product);
                 await _context.SaveChangesAsync();
+                return NoContent();
             }
            
             //_context.SaveChanges();
@@ -125,12 +141,33 @@ namespace API.Controllers
             }*/
             
 
-            return NoContent();
+            return Conflict();
         }
 
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);
+        }
+
+        private bool CheckAuth()
+        {
+            StringValues pr = Request.Headers.Authorization;
+            string dataAuth = pr[0].Substring(7);
+            string[] mass = dataAuth.Split(' ');
+            byte[] EncryptedData = new byte[mass.Length];
+            for (int i = 0; i < mass.Length; i++)
+            {
+                EncryptedData[i] = Convert.ToByte(mass[i]);
+            }
+            //byte[] EncryptedData = Encoding.UTF8.GetBytes(ДанныеАвторизации);
+            byte[] DecryptedData = _context.RsaKey.Decrypt(EncryptedData, false);
+            string a = Encoding.UTF8.GetString(DecryptedData);
+            string[] log = a.Split(' ');
+            if (log[0] == "login" && log[1] == "password" && DateTime.Now.AddMinutes(-5) < DateTime.Parse(log[2]+ " " + log[3]))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

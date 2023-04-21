@@ -1,14 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using API.Models;
+using КурсоваяAPI.Models;
 
 namespace API.Models
 {
     public partial class OvoshebazaContext : DbContext
     {
+        public RSACryptoServiceProvider RsaKey;
+        public string publickey;
+        public string privatekey;
+
         public OvoshebazaContext()
         {
+            RsaKey = new RSACryptoServiceProvider();
+            //RsaKey.FromXmlString("<RSAKeyValue><Modulus>qLSks6XFKN/iEPcvwWTJ4ghf/9gNLx7hCw7D2Y3j0ARNGmLqiBULAVnDTJ2iZhzzebsD1kaaMp2GRAROPHH/OwwD2C3x8rQQCl1VOKzzOQ1h+rNuAgezkPHVaXCu1OCuwURnTpqs09L3xVQitD1ZByxOxgZ0OzRKjUqpdwXXMfk=</Modulus><Exponent>AQAB</Exponent><P>0kkXifAB65p9o6Bf5F21Vs7jNcYa7s9WL3Acsu3rN0tA3nie3dWndEdPTEWUW+tsLyqFoFQcJzM5sK4DSpPwjw==</P><Q>zWGHUnMGxvmEWG2pzULSI53JvMuzV585VMzABSFEkGyYtXnpHVznrJK3DXrXD3kOnF0ZWnyT4MJuGfoxgqBo9w==</Q><DP>C8NO78ZfNSC1Onv0IUAkrrBwAUgNpaIvfgPVdyTb7YHmJQu2R052SYjbpLaXr/ShXpoQU4Gg+YhiB8IUKQ3RfQ==</DP><DQ>YXvQYmcsqVcX5W0v8riry7ICZnV9i7KM4N5KqmSvCaoyFblm18QYRwZgkqpi1/pK4BckiJmnC0DeR8BErc774w==</DQ><InverseQ>jt1UUisSEWNhqak5RO3vCOgt3k++QF7LBYZ5UELmfUqTk9sAqCfaziRddi9o601mWYfXLMr9hQ0naKbo70x2Aw==</InverseQ><D>nrZraFLgvAZ78EgMFl3Si6IjZlcEeDsNrlBysf4Jv038l4FNcT6Svu+Ki06VVImSCQiGoJSFRm7pvJ1sWPNKD+S9v+3ZjI5e+KdDx5BLCKHfwwlYYBxH5gMMC/84uaJVzjw0cBPifDQxRdTal/Vlopb9ZN9POYQ4TjxxcrJDiW0=</D></RSAKeyValue>");
+            publickey = RsaKey.ToXmlString(false);
+            privatekey = RsaKey.ToXmlString(true);
         }
 
         public OvoshebazaContext(DbContextOptions<OvoshebazaContext> options)
@@ -29,6 +40,7 @@ namespace API.Models
         public virtual DbSet<Shipment> Shipments { get; set; } = null!;
         public virtual DbSet<ShipmentComposition> ShipmentCompositions { get; set; } = null!;
         public virtual DbSet<Supply> Supplies { get; set; } = null!;
+        public virtual DbSet<User> Users { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -221,6 +233,15 @@ namespace API.Models
                     .HasConstraintName("FK_ShipmentCompositions_Shipment");
             });
 
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.ToTable("User");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+            });
+
+            OnModelCreatingPartial(modelBuilder);
+
             modelBuilder.Entity<Supply>(entity =>
             {
                 entity.ToTable("Supply");
@@ -242,5 +263,9 @@ namespace API.Models
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+        public DbSet<API.Models.Currency>? Currency { get; set; }
+
+        public DbSet<API.Models.CurrencyRate>? CurrencyRate { get; set; }
     }
 }

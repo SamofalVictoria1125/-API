@@ -52,7 +52,13 @@ namespace КурсоваяAPI.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(contactPerson).State = EntityState.Modified;
+            var existingCart = _context.ContactPeople.Find(contactPerson.Id);
+            if (existingCart != null)
+            {
+
+                var attachedEntry = _context.Entry(existingCart);
+                attachedEntry.CurrentValues.SetValues(contactPerson);
+            }
 
             try
             {
@@ -94,10 +100,19 @@ namespace КурсоваяAPI.Controllers
                 return NotFound();
             }
 
-            _context.ContactPeople.Remove(contactPerson);
-            await _context.SaveChangesAsync();
 
-            return NoContent();
+            var counterparty = _context.Counterparties.Where(p => p.IdcontactPerson == id);
+            var employee = _context.Employees.Where(p => p.IdcontactPerson == id);
+ 
+            _context.ContactPeople.Attach(contactPerson);
+            if (counterparty.Count() == 0 && employee.Count() == 0 )
+            {
+                _context.Remove(contactPerson);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+
+            return Conflict();
         }
 
         private bool ContactPersonExists(int id)

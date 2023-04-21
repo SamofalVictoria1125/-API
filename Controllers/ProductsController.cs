@@ -9,6 +9,7 @@ using API.Models;
 using System.Reflection.Metadata;
 using Microsoft.Extensions.Primitives;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace API.Controllers
 {
@@ -28,7 +29,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            if (CheckAuth())
+            if (CheckUser())
             {
                 return await _context.Products.ToListAsync();
             }
@@ -149,7 +150,7 @@ namespace API.Controllers
             return _context.Products.Any(e => e.Id == id);
         }
 
-        private bool CheckAuth()
+        private string CheckUser()
         {
             StringValues pr = Request.Headers.Authorization;
             string dataAuth = pr[0].Substring(7);
@@ -165,9 +166,10 @@ namespace API.Controllers
             string[] log = a.Split(' ');
             if (log[0] == "login" && log[1] == "password" && DateTime.Now.AddMinutes(-5) < DateTime.Parse(log[2]+ " " + log[3]))
             {
-                return true;
+                return ;
             }
             return false;
         }
+        
     }
 }

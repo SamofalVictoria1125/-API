@@ -101,7 +101,7 @@ namespace КурсоваяAPI.Controllers
             }
 
 
-            var counterparty = _context.Counterparties.Where(p => p.IdcontactPerson == id);
+            var counterparty = _context.Counterparties.Where(p => p.IdContactPerson == id);
             var employee = _context.Employees.Where(p => p.IdcontactPerson == id);
  
             _context.ContactPeople.Attach(contactPerson);

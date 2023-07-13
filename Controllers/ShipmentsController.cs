@@ -27,6 +27,14 @@ namespace API.Controllers
             return await _context.Shipments.ToListAsync();
         }
 
+        [HttpGet("shipmentCompositions/{id}")]
+        public async Task<ActionResult<IEnumerable<ShipmentComposition>>> GetShipmentCompositionsByShipmentId(int id)
+        {
+
+            var shipmentCompositions = _context.ShipmentCompositions.Where(p => p.Idshipment == id).AsEnumerable<ShipmentComposition>();
+            return shipmentCompositions.ToList();
+        }
+
         // GET: api/Shipments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Shipment>> GetShipment(int id)

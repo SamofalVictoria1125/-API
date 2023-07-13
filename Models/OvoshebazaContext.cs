@@ -4,11 +4,12 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using API.Models;
-using КурсоваяAPI.Models;
+using КурсоваяAPI;
 
 namespace API.Models
 {
     public partial class OvoshebazaContext : DbContext
+
     {
         public RSACryptoServiceProvider RsaKey;
         public string publickey;
@@ -64,13 +65,13 @@ namespace API.Models
             {
                 entity.Property(e => e.Id).HasColumnName("ID");
 
-                entity.Property(e => e.IdcontactPerson).HasColumnName("IDContactPerson");
+                //entity.Property(e => e.IdContactPerson).HasColumnName("IDContactPerson");
 
-                entity.HasOne(d => d.IdcontactPersonNavigation)
+                /*entity.HasOne(d => d.IdcontactPersonNavigation)
                     .WithMany(p => p.Counterparties)
-                    .HasForeignKey(d => d.IdcontactPerson)
+                    .HasForeignKey(d => d.IdContactPerson)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Counterparties_ContactPerson");
+                    .HasConstraintName("FK_Counterparties_ContactPerson");*/
             });
 
             modelBuilder.Entity<Customer>(entity =>
@@ -81,11 +82,11 @@ namespace API.Models
 
                 entity.Property(e => e.Idpartner).HasColumnName("IDPartner");
 
-                entity.HasOne(d => d.IdpartnerNavigation)
+                /*entity.HasOne(d => d.IdpartnerNavigation)
                     .WithMany(p => p.Customers)
                     .HasForeignKey(d => d.Idpartner)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Customer_Counterparties");
+                    .HasConstraintName("FK_Customer_Counterparties");*/
             });
 
             modelBuilder.Entity<DeliveryComposition>(entity =>
@@ -188,11 +189,11 @@ namespace API.Models
 
                 entity.Property(e => e.Idpartner).HasColumnName("IDPartner");
 
-                entity.HasOne(d => d.IdpartnerNavigation)
+                /*entity.HasOne(d => d.IdpartnerNavigation)
                     .WithMany(p => p.Sellers)
                     .HasForeignKey(d => d.Idpartner)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Sellers_Counterparties");
+                    .HasConstraintName("FK_Sellers_Counterparties");*/
             });
 
             modelBuilder.Entity<Shipment>(entity =>

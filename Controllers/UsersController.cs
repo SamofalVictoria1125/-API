@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Models;
-using КурсоваяAPI.Models;
+using API;
 
 namespace КурсоваяAPI.Controllers
 {

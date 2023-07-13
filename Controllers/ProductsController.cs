@@ -29,14 +29,25 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            if (CheckUser())
+           ActionResult res =  CheckUserCredentials(new List<string>() { "admin", "client" });
+           if(res is  Microsoft.AspNetCore.Mvc.OkResult)
             {
                 return await _context.Products.ToListAsync();
             }
-            return NoContent();
-
+            else
+            {
+                return res;
+            }
+                
         }
-        
+
+        [HttpGet("GetCheckProblem")]
+        public ActionResult CheckProblem()
+        {
+            return Problem("Текст");
+        }
+
+
 
         // GET: api/Products/5
         [HttpGet("{id}")]
@@ -149,8 +160,9 @@ namespace API.Controllers
         {
             return _context.Products.Any(e => e.Id == id);
         }
+        
 
-        private string CheckUser()
+        private ActionResult CheckUserCredentials(List<string> Roles)
         {
             StringValues pr = Request.Headers.Authorization;
             string dataAuth = pr[0].Substring(7);
@@ -164,12 +176,60 @@ namespace API.Controllers
             byte[] DecryptedData = _context.RsaKey.Decrypt(EncryptedData, false);
             string a = Encoding.UTF8.GetString(DecryptedData);
             string[] log = a.Split(' ');
-            if (log[0] == "login" && log[1] == "password" && DateTime.Now.AddMinutes(-5) < DateTime.Parse(log[2]+ " " + log[3]))
+            var Query  = _context.Users.Where(p => p.Login == log[0]);
+
+            User user;
+
+            if (Query.Count() == 0)
             {
-                return ;
+                user = null;
+                return Problem("Пользователь не найден");
             }
-            return false;
+            else
+            {
+                if(Query.ToList()[0].Password != log[1])
+                {
+                    user = null;
+                    return Problem("Пароли не совпадают");
+                }
+                else
+                {
+                    if(DateTime.Now.AddMinutes(-5) >= DateTime.Parse(log[2] + " " + log[3]))
+                    {
+                        user = null;
+                        return Problem("Срок данных идентификации истек");
+
+                    }
+                    else
+                    {
+                        user = Query.ToList()[0];
+                        if (Roles.Contains(user.UserRol))
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return Problem("Отказ в доступе вашей роли");
+                        }
+                    }
+                    
+                }
+
+                    
+            }
+            
         }
-        
+
+       
+
+
     }
+    enum РезультатИдентификации
+    {
+        ИдентификацияУспешна, 
+        СрокДанныхИдентификацииИстек,
+        ПаролиНеСовпадают,
+        ПользовательНеНайден
+    }
+
 }

@@ -51,8 +51,13 @@ namespace КурсоваяAPI.Controllers
             {
                 return BadRequest();
             }
+            var existingCart = _context.Counterparties.Find(counterparty.Id);
+            if (existingCart != null)
+            {
 
-            _context.Entry(counterparty).State = EntityState.Modified;
+                var attachedEntry = _context.Entry(existingCart);
+                attachedEntry.CurrentValues.SetValues(counterparty);
+            }
 
             try
             {
@@ -73,16 +78,26 @@ namespace КурсоваяAPI.Controllers
             return NoContent();
         }
 
+
+
         // POST: api/Counterparties
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Counterparty>> PostCounterparty(Counterparty counterparty)
         {
             _context.Counterparties.Add(counterparty);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch(DbUpdateConcurrencyException ex)
+            {
+                return NotFound(ex.Message);
+            }
 
             return CreatedAtAction("GetCounterparty", new { id = counterparty.Id }, counterparty);
         }
+
 
         // DELETE: api/Counterparties/5
         [HttpDelete("{id}")]
